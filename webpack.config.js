@@ -5,8 +5,9 @@ const HTMLWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   entry: './client/index.js',
   output: {
+    path: path.resolve(__dirname, 'build'),
     filename: 'bundle.js',
-    path: path.join(__dirname, '/dist'),
+    publicPath: '/',
   },
   mode: process.env.NODE_ENV,
   devServer: {
