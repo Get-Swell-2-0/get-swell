@@ -23,7 +23,7 @@ const PostCreator = props => {
     };
   }
   const handlePost = () => {
-    console.log(image);
+    console.log(typeof image);
     fetch('/api/posts/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -79,7 +79,7 @@ const PostCreator = props => {
           />
         </form>
       </div>
-      <button onClick={() => handlePost()}>Post</button>
+      <button data-cy = "picSubmit" onClick={() => handlePost()}>Post</button>
     </div>
   );
 };

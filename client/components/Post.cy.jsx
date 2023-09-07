@@ -64,8 +64,8 @@ describe('<Post />', () => {
         console.log('yooooo')
       }
     }
-    let feedChange = cy.stub(obj, 'myFunc').as('feed')
-    //  let feedChange = cy.stub()
+    // let feedChange = cy.stub(obj, 'myFunc').as('feed')
+     let feedChange = cy.stub().as('feed')
     const props = {
       setFeedChange: feedChange,
       postInfo: {
