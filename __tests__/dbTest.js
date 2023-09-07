@@ -22,6 +22,18 @@ describe('connected to database', () => {
     const userData = await userModel.User.findOne({ userName: 'Bryan' });
     expect(userData.userName).toEqual('Bryan');
   });
+  it('catches error if it does not connect', async () => {
+    try{
+      const noConnect = await mongoose.connect(null, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        dbName: 'get-swell',
+      })
+    } catch (error) {
+      expect(error).toBeTruthy();
+    }
+
+  })
 });
 
 /* 
@@ -33,18 +45,33 @@ let testActivitiesId;
 describe('postController', () => {
   describe('Get All Posts', () => {
     const mReq = { params: { id: '' } };
-    const mRes = { locals: {} };
+    
     const mNext = jest.fn();
     it('gets all posts', async () => {
+      const mRes = { locals: {} };
       await postController.getAllPosts(mReq, mRes, mNext);
       expect(Array.isArray(mRes.locals.allPosts)).toBe(true);
       expect(typeof mRes.locals.allPosts[0]._id).toBe('object');
     });
     it('triggers next function', async () => {
+      const mRes = { locals: {} };
       await postController.getAllPosts(mReq, mRes, mNext);
       expect(mNext).toBeCalled();
     });
+    it('should error out if passed invalid data', async () => {
+      const mRes = { locals: [] };
+      try {
+        const errorTest = await postController.getAllPosts(mReq, mRes, mNext);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    });
   });
+
+  // describe('Get Filtered Posts', () => {
+    
+  // })
 
   describe('Create Post and Delete Post', () => {
     const mReq = {
@@ -88,6 +115,15 @@ describe('postController', () => {
       await postController.deletePost(mReq, mRes, mNext);
       expect(mRes.locals.deletedPost.description).toBe('DB Test');
     });
+    it('Should error out if post does not exist', async () => {
+      let mReq = { params: { id: testActivitiesId } };
+      try {
+        await userController.deletePost(mReq, mRes, mNext);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    })
   });
 
   // console.log('before delete post', testActivitiesId);
@@ -211,7 +247,7 @@ describe('UserController', () => {
       // getUser should return an error when searching for 'Kobe'.
     });
     it('Should return an error is user does not exist', async () => {
-      let mReq = { query: { userName: 'kobe' } };
+      let mReq = { query: { userName: 'kobe' }};
       try {
         const getUser = await userController.deleteUser(mReq, mRes, mNext);
         expect(true).toBe(false);
@@ -219,5 +255,29 @@ describe('UserController', () => {
         expect(error).toBeTruthy();
       }
     });
+
+    it('Should call the next function', async () => {
+      let mReq = { query: {userName: 'kobe'}};
+      const deleted = await userController.deleteUser(mReq, mRes, mNext);
+      expect(mNext).toBeCalled();
+    })
   });
+
+  describe('Should update user and user preferences', () => {
+    it('Should update user and user preferences', async () => {
+      let firstReq = { query: { userName: 'Bryan'}, body: {preferences: {Motivation: false, Milestones: false, Mindfulness: false} }};
+      const mRes = { locals: {} };
+      const mNext = jest.fn();
+      let secondReq = { query: { userName: 'Bryan'}, body: {preferences: {Motivation: true, Milestones: true, Mindfulness: true} }};
+      // first req, turns all prefs false
+      // expect all prefs to be false => res.locals.updatedUser.prefrences.Motivation
+      //second req, turns all prefs true
+      //expect all prefs to be true => res.locals.updatedUser.prefrences.Motivation
+      await userController.updateUser(firstReq, mRes, mNext);
+      console.log('updated pref :', mRes);
+      expect(mRes.locals.updatedUser.preferences.Motivation).toBe(false);
+      await userController.updateUser(secondReq, mRes, mNext);
+      expect(mRes.locals.updatedUser.preferences.Motivation).toBe(true);
+    })
+  })
 });

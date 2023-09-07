@@ -20,9 +20,6 @@ userController.getUser = async (req, res, next) => {
     });
   }
 };
-// log: `userController.getUser caught error: ${error}`,
-// message: { err: 'See server log for details' },
-// }
 
 // POST - add new user
 userController.createUser = async (req, res, next) => {
@@ -48,6 +45,7 @@ userController.createUser = async (req, res, next) => {
   }
 };
 
+// UPDATE - updates user data, and user preferences. Used for filtering posts on front end.
 userController.updateUser = async (req, res, next) => {
   const { userName } = req.query;
   try {

@@ -15,6 +15,7 @@ mongoose
   })
   .then(() => console.log('Connected to Mongo DB.'))
   .catch(err => console.log(err));
+  // .catch(err => err);
 
 const Schema = mongoose.Schema;
 
