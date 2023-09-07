@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const postController = require('../server/controllers/postController.js');
 const userController = require('../server/controllers/userController.js');
 const userModel = require('../server/models/models.js');
+const Server = require('webpack-dev-server');
+
+let testUserId = '';
 
 describe('connected to database', () => {
   beforeAll(async () => {
@@ -19,45 +22,114 @@ describe('connected to database', () => {
     const userData = await userModel.User.findOne({ userName: 'Bryan' });
     expect(userData.userName).toEqual('Bryan');
   });
+  it('catches error if it does not connect', async () => {
+    try{
+      const noConnect = await mongoose.connect(null, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        dbName: 'get-swell',
+      })
+    } catch (error) {
+      expect(error).toBeTruthy();
+    }
+
+  })
 });
+
+/* 
+  Post Controller Tests. Get, Create, Update, Delete
+*/
+
+let testActivitiesId;
 
 describe('postController', () => {
   describe('Get All Posts', () => {
     const mReq = { params: { id: '' } };
-    const mRes = { locals: {} };
+    
     const mNext = jest.fn();
     it('gets all posts', async () => {
+      const mRes = { locals: {} };
       await postController.getAllPosts(mReq, mRes, mNext);
       expect(Array.isArray(mRes.locals.allPosts)).toBe(true);
       expect(typeof mRes.locals.allPosts[0]._id).toBe('object');
     });
     it('triggers next function', async () => {
+      const mRes = { locals: {} };
       await postController.getAllPosts(mReq, mRes, mNext);
       expect(mNext).toBeCalled();
     });
+    it('should error out if passed invalid data', async () => {
+      const mRes = { locals: [] };
+      try {
+        const errorTest = await postController.getAllPosts(mReq, mRes, mNext);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    });
   });
 
-  describe('Create and Delete Post', () => {
+
+  describe('Create Post and Delete Post', () => {
     const mReq = {
-      userID: { _id: '64f7cc6070af1c6e0e841fb4' },
-      preference: 'Motivation',
-      image: null,
-      description: 'DB Test',
-      hypes: 0,
-      vibes: [],
+      body: {
+        userID: { _id: '64f7cc6070af1c6e0e841fb4' },
+        preference: 'Motivation',
+        image: null,
+        description: 'DB Test',
+        hypes: 0,
+        vibes: [],
+      },
     };
     const mRes = { locals: {} }; // expect
     const mNext = jest.fn();
     //  response should be the data point
     it('Creates a new post', async () => {
       await postController.createPost(mReq, mRes, mNext);
-      console.log('Res: ', mRes);
-      // expect();
+      console.log('Res: ', mRes.locals.newPost);
+      // res.locals has a _Id prop
+      const id = mRes.locals.newPost._id.toString();
+      testActivitiesId = id;
+      expect(mRes.locals.newPost.description).toBe('DB Test');
+    });
+    it('next function is called', () => {
       expect(mNext).toBeCalled();
     });
+    it('should error out if passed invalid data', async () => {
+      try {
+        const errorTest = await postController.createPost({}, mRes, mNext);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    });
+    // delete
+    it('Deletes Post', async () => {
+      console.log('test act Id', testActivitiesId);
+      let mReq = { params: { id: testActivitiesId } };
+      const mRes = { locals: {} };
+      const mNext = jest.fn();
+      await postController.deletePost(mReq, mRes, mNext);
+      expect(mRes.locals.deletedPost.description).toBe('DB Test');
+    });
+    it('Should error out if post does not exist', async () => {
+      let mReq = { params: { id: testActivitiesId } };
+      try {
+        await userController.deletePost(mReq, mRes, mNext);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    })
   });
+
+  // console.log('before delete post', testActivitiesId);
+  // describe('Updates Post',)
 });
 
+/* 
+  User Controller Tests. Get, Create, Update, Delete
+*/
 describe('UserController', () => {
   describe('Get User', () => {
     const mRes = { locals: {} };
@@ -73,18 +145,136 @@ describe('UserController', () => {
       const userGamer = await userController.getUser(mReq, mRes, mNext);
       expect(mNext).toBeCalled();
     });
-    it('should error out given invalid username', async () => {
-      let mReq = { query: { userName: 'brian' } };
-      const userGamer = await userController.getUser(mReq, mRes, mNext);
-      expect(mNext).toBeCalledWith({
-        log: `userController.getUser caught error: user does not exist`,
-        message: { err: 'See server log for details' },
-      });
+    it('should throw error when user is invalid', async () => {
+      let mReq = {};
+      try {
+        const userGamer = await userController.getUser(mReq, mRes, mNext);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
     });
   });
-});
 
-// expect(mNext).toBeCalledWith({
-//   log: `userController.getUser caught error: user does not exist`,
-//   message: { err: 'See server log for details' },
-// });
+  describe('Successfully creates a new user', () => {
+    const mRes = { locals: {} };
+    const mNext = jest.fn();
+    it('Creates a new user', async () => {
+      let mReq = {
+        query: {
+          userName: 'choe',
+        },
+        body: {
+          password: 'bryan',
+          email: 'choe@bryan.com',
+          preferences: {
+            Motivation: true,
+            Milestones: false,
+            Mindfulness: false,
+          },
+          zipCode: 92821,
+        },
+      };
+      const newUser = await userController.createUser(mReq, mRes, mNext);
+      console.log('NEW USER', newUser);
+      expect(mRes.locals.newUser.userName).toBe('choe');
+    });
+    it('Next function is called', async () => {
+      let mReq = {
+        query: {
+          userName: 'choe',
+        },
+        body: {
+          password: 'bryan',
+          email: 'choe@bryan.com',
+          preferences: {
+            Motivation: true,
+            Milestones: false,
+            Mindfulness: false,
+          },
+          zipCode: 92821,
+        },
+      };
+      const newUser = await userController.createUser(mReq, mRes, mNext);
+      expect(mNext).toBeCalled();
+    });
+
+    it('Should throw an error when a user is not created properly', async () => {
+      let mReq = {};
+      try {
+        const newUser = await userController.createUser(mReq, mRes, mNext);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    });
+  });
+
+  describe('Should delete a user', () => {
+    const mRes = { locals: {} };
+    const mNext = jest.fn();
+    it('Should delete a user', async () => {
+      let mReq = {
+        query: {
+          userName: 'kobe',
+        },
+        body: {
+          password: 'bryant',
+          email: 'choe@bryan.com',
+          preferences: {
+            Motivation: true,
+            Milestones: false,
+            Mindfulness: false,
+          },
+          zipCode: 92821,
+        },
+      };
+      const newUser = await userController.createUser(mReq, mRes, mNext);
+      console.log('newUser: ', mRes.locals.newUser);
+      mReq = { query: { userName: mRes.locals.newUser.userName } };
+      const deletedUser = await userController.deleteUser(mReq, mRes, mNext);
+      expect(mRes.locals.deletedUser.userName).toBe('kobe'); // status code indicates success and no content
+      mReq = { query: { userName: 'kobe' } };
+      try {
+        const getUser = await userController.getUser(mReq, mRes, mNext);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+      // getUser should return an error when searching for 'Kobe'.
+    });
+    it('Should return an error is user does not exist', async () => {
+      let mReq = { query: { userName: 'kobe' }};
+      try {
+        const getUser = await userController.deleteUser(mReq, mRes, mNext);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    });
+
+    it('Should call the next function', async () => {
+      let mReq = { query: {userName: 'kobe'}};
+      const deleted = await userController.deleteUser(mReq, mRes, mNext);
+      expect(mNext).toBeCalled();
+    })
+  });
+
+  describe('Should update user and user preferences', () => {
+    it('Should update user and user preferences', async () => {
+      let firstReq = { query: { userName: 'Bryan'}, body: {preferences: {Motivation: false, Milestones: false, Mindfulness: false} }};
+      const mRes = { locals: {} };
+      const mNext = jest.fn();
+      let secondReq = { query: { userName: 'Bryan'}, body: {preferences: {Motivation: true, Milestones: true, Mindfulness: true} }};
+      // first req, turns all prefs false
+      // expect all prefs to be false => res.locals.updatedUser.prefrences.Motivation
+      //second req, turns all prefs true
+      //expect all prefs to be true => res.locals.updatedUser.prefrences.Motivation
+      await userController.updateUser(firstReq, mRes, mNext);
+      console.log('updated pref :', mRes);
+      expect(mRes.locals.updatedUser.preferences.Motivation).toBe(false);
+      await userController.updateUser(secondReq, mRes, mNext);
+      expect(mRes.locals.updatedUser.preferences.Motivation).toBe(true);
+    })
+  })
+});

@@ -27,7 +27,7 @@ app.use(express.static(path.join(__dirname, './../dist')));
 
 app.use('/api/users', userRouter);
 app.use('/api/posts', postRouter);
-app.use('/api', apiRouter);
+// app.use('/api', apiRouter);
 
 // serve 404 status
 // TODO: Add 404 html page
