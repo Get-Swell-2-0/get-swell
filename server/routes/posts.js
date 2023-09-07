@@ -4,6 +4,7 @@ const postController = require('./../controllers/postController.js');
 
 // TEST ROUTE TO GET ALL POSTS
 router.get('/', postController.getAllPosts, (req, res) => {
+  console.log(res.locals.allPosts)
   res.status(200).json(res.locals.allPosts);
 });
 

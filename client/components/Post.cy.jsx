@@ -85,6 +85,6 @@ describe('<Post />', () => {
     cy.get('button').click()
    cy.get('@feed').should('have.been.called')
   //  expect('feed').to.be.calledOnce
-  
   })
+  
 })

@@ -27,7 +27,7 @@ const Post = props => {
     <div className='post' id={props.postInfo._id}>
       <img src={props.postInfo.image || octopus}></img>
       <p>
-        <b>Category: </b> {props.postInfo.preference}
+        <b>Category:</b> {props.postInfo.preference}
       </p>
       <p>
         <b>{props.postInfo.userID.userName}:</b> {props.postInfo.description}
