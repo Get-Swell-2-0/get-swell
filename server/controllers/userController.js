@@ -7,9 +7,9 @@ userController.getUser = async (req, res, next) => {
   const { userName } = req.query;
   try {
     const fetchedUser = await User.findOne({ userName });
-    if (!fetchedUser) {
-      throw 'user does not exist';
-    }
+    // if (!fetchedUser) {
+    //   throw 'user does not exist';
+    // }
     res.locals.user = fetchedUser;
     console.log('userController.getUser fetched user:', fetchedUser);
     return next();

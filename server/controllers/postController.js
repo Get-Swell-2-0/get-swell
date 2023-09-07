@@ -55,7 +55,7 @@ postController.createPost = async (req, res, next) => {
     res.locals.newPost = postData;
     console.log('res.locals.newPost: ', res.locals.newPost);
     return next();
-  } catch (err) {
+  } catch (error) {
     return next({
       log: `postController.createPost: ERROR ${error}`,
       status: 400,
@@ -90,7 +90,7 @@ postController.createPost = async (req, res, next) => {
 // DELETE POST
 postController.deletePost = async (req, res, next) => {
   const { id } = req.params;
-
+  console.log('inside delete post', id);
   try {
     const deletedPostData = await Activity.findOneAndDelete({ _id: id });
     res.locals.deletedPost = deletedPostData;

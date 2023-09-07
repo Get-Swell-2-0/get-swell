@@ -69,9 +69,6 @@ describe('postController', () => {
     });
   });
 
-  // describe('Get Filtered Posts', () => {
-    
-  // })
 
   describe('Create Post and Delete Post', () => {
     const mReq = {
