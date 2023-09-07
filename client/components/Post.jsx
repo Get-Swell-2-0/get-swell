@@ -7,18 +7,20 @@ const Post = props => {
   const { setFeedChange, postInfo } = props;
   console.log('creating a post');
   console.log('postInfo:', postInfo);
-  const deletePost = event => {
+  const deletePost = async (event) => {
+    try{
     const postID = event.target.parentNode.id;
-    fetch(`/api/posts/${postID}`, {
+    console.log('POST ID: ' , postID)
+    const response = await fetch(`/api/posts/${postID}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' }
     })
-      .then(response => response.json())
-      .then(data => {
-        console.log(data);
-        setFeedChange(true);
-      })
-      .catch(error => console.log(error));
+    setFeedChange(true)
+    // console.log('hello')
+  }
+    catch(err){
+      console.log("yo shit is erroring", err)
+    }
   };
 
   return (
